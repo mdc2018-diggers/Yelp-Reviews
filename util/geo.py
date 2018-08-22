@@ -1,6 +1,11 @@
 import math
 
-def haversine_dist(p1, p2):
+earth_radius = 6367
+
+def dist_to_angle(dist, radius=earth_radius):
+    return math.degrees(dist/radius)
+
+def haversine_dist(p1, p2, radius = earth_radius):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
@@ -8,21 +13,20 @@ def haversine_dist(p1, p2):
     # convert decimal degrees to radians
     lat1, lon1, lat2, lon2  = map(math.radians, [p1[0], p1[1], p2[0], p2[1]])
 
+
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
     c = 2 * math.asin(math.sqrt(a))
 
-    # 6367 km is the radius of the Earth
-    km = 6367 * c
+    km = radius * c
     return km
 
 def euclidian_dist(p1, p2):
     return math.sqrt(sum((a-b)**2 for a,b in zip(p1, p2)))
 
-def latlong_to_3d(loc):
-    radius = 6367
+def latlong_to_3d(loc, radius = earth_radius):
     lat, lon = math.radians(loc[0]), math.radians(loc[1])
     return (
         radius*math.cos(lon)*math.cos(lat),
