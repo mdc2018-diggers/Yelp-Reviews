@@ -43,9 +43,13 @@ def _multiple(f):
 def _dataframe(f):
     def wrapper(*args, **kwargs):
         dataframe = kwargs.pop('dataframe', False)
+        attrs = kwargs.get('attrs', None)
+        if isinstance(attrs, str):
+            attrs = [attrs]
+            kwargs['attrs'] = attrs
         gen = f(*args, **kwargs)
         if dataframe:
-            return pd.DataFrame(gen)
+            return pd.DataFrame(gen, columns=attrs)
         else:
             return gen
     return wrapper
@@ -80,13 +84,13 @@ def _limit_offset(f):
 
 def _map_and_filter(f):
     def wrapper(*args, **kwargs):
+        filter = kwargs.pop('filter', lambda x: True)
         map = kwargs.pop('map', lambda x: x)
         attrs = kwargs.pop('attrs', None)
-        filter = kwargs.pop('filter', lambda x: True)
         for x in f(*args, **kwargs):
-            x = map(x)
             if not filter(x):
                 continue
+            x = map(x)
 
             if isinstance(attrs, str):
                 x = x[attrs]
@@ -113,12 +117,20 @@ def _repeat(f):
             raise Exception('Invalid repeat argument')
     return wrapper
 
+def _prepare_kaggle():
+    """ ~.kaggle/kaggle.json should be pre-configured """
+    subprocess.check_call([
+        'pip', 'install', '-q', 'kaggle'])
+
 def _get_dataset_file(name):
+    _prepare_kaggle()
     dataset_dir = 'Datasets'
     filename = 'yelp_academic_dataset_' + name + '.json'
     file = os.path.join(dataset_dir, filename)
     if not os.path.exists(file):
         print('Fetching dataset ' + name + '...')
+        subprocess.check_call([
+            'pip', 'install', '-q', 'kaggle'])
         subprocess.check_call([
             'kaggle', 'datasets', 'download',
             '--force',
