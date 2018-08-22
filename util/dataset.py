@@ -44,7 +44,7 @@ def _dataframe(f):
     def wrapper(*args, **kwargs):
         dataframe = kwargs.pop('dataframe', False)
         attrs = kwargs.get('attrs', None)
-        if isinstance(attrs, str):
+        if dataframe and isinstance(attrs, str):
             attrs = [attrs]
             kwargs['attrs'] = attrs
         gen = f(*args, **kwargs)
